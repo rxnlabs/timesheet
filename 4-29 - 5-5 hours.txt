@@ -1,0 +1,12 @@
+Thursday Helpdesk 8:00 8:44 44 0.733333333333
+Thursday Helpdesk 10:07 12:45 158 2.63333333333
+Thursday Blackwell 1:45 3:45 120 2
+Thursday Helpdesk 4:44 6:45 121 2.01666666667
+Friday Blackwell 8:57 9:45 48 0.8
+Friday TETC 10:52 13:45 173 2.88333333333
+Monday Helpdesk 9:01 9:51 50 0.833333333333
+Monday Blackwell 2:56 4:45 109 1.81666666667
+Tuesday Helpdesk 9:46 11:53 127 2.11666666667
+Tuesday UC 4:51 8:59 248 4.13333333333
+Wednesday Henson 8:56 9:56 60 1
+Wednesday TETC 2:47 3:52 65 1.08333333333

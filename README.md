@@ -53,6 +53,8 @@ Timesheet allowed me to seamlessly balance my hours between jobs while ensuring 
 
 ## Redevelopment Plan
 
-Timesheet holds a special place in my development journey as one of my earliest practical applications. While I deeply value all the systems and programs I’ve developed for others, Timesheet stands out because it was a project I created to solve a problem I personally faced.
+To continue learning and exploring new technologies, I plan to use Timesheet as a foundation for experimenting with modern programming languages and frameworks. 
 
-To continue learning and exploring new technologies, I plan to use Timesheet as a foundation for experimenting with modern programming languages and frameworks. Unlike traditional tutorials, books, or video courses, which can feel disconnected or overly theoretical, working on a real and meaningful project like Timesheet keeps me engaged and motivated.
+## Versions
+- [original](https://github.com/rxnlabs/timesheet/tree/archive): The first version, built using PHP with HTML templates.
+- [php+react](https://github.com/rxnlabs/timesheet/tree/php%2Breact): The initial refactor, featuring a React frontend and a modernized PHP backend.

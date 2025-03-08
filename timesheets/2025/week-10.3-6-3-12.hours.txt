@@ -1,0 +1,7 @@
+shift-67cafc020e83f Friday Helpdesk 02:25 04:30 125 2.083333
+shift-67cb04c3c9a27 Friday Devilbiss 03:15 08:30 315 5.250000
+shift-67cb35bb0a023 Friday Fulton 05:15 08:15 180 3.000000
+shift-67cb551976abe Friday Henson 06:00 08:00 120 2.000000
+shift-67cb5a7bd3ef2 Wednesday Fulton 05:00 06:00 60 1.000000
+shift-67cc901503094 Saturday Fulton 02:30 04:30 120 2.000000
+shift-67cc9d5fe768d Monday Blackwell 04:20 08:30 250 4.166667

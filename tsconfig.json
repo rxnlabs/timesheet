@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["dom", "esnext"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "importHelpers": true, // Important for optimizing tslib package
+    "sourceMap": true,
+    "inlineSourceMap": false,
+    "inlineSources": true // Make sure that sources are included in generated .map files
+  },
+  "include": [
+    "app/**/*"
+  ],
+  "exclude": ["node_modules"]
+}

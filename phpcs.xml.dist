@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="rxnlabs phpcs custom ruleset">
+    <description>rxnlabs phpcs custom ruleset</description>
+
+    <!-- Include the WordPress-Extra Coding Standards -->
+    <rule ref="PSR12">
+        <exclude name="Generic.Files.LineLength.TooLong"/>
+    </rule>
+
+    <arg name="extensions" value="php" />
+    <arg name="colors" />
+    <arg value="s" /><!-- Show sniff codes in all reports -->
+
+    <!-- Specify file patterns and directories to analyze -->
+    <file>./src</file>
+    <file>./public</file>
+    <!--<file>./tests/Unit</file>
+    <file>./tests/Integration</file>-->
+
+    <!-- Exclude vendor directory -->
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>non-composer-vendor/*</exclude-pattern>
+</ruleset>

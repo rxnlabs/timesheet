@@ -1,0 +1,22 @@
+{
+    "name": "rxnlabs/timesheet",
+    "description": "Timesheet application to track my hours worked for my jobs.",
+    "optimize-autoloader": true,
+    "autoload": {
+        "psr-4": {
+           "rxnlabs\\Timesheet\\": "src"
+        }
+    },
+    "require": {
+        "slim/http": "^1.4",
+        "nyholm/psr7": "^1.8",
+        "laminas/laminas-httphandlerrunner": "^2.11"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.11"
+    },
+    "scripts": {
+        "phpcs": "vendor/bin/phpcs",
+        "phpcbf": "vendor/bin/phpcbf"
+    }
+}

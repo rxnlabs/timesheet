@@ -6,7 +6,7 @@
 - Rewrote the backend as a PSR-4 compliant PHP class.
 - Added data sanitation and validation when inputting a time.
 - Improved data handling with automatic weekly log generation and unique IDs for shifts.
-- - Added PHP_CodeSniffer to enforce PSR coding standards and maintain code quality.
+- Added PHP_CodeSniffer to enforce PSR coding standards and maintain code quality.
 - Added ESLint for linting and enforcing coding standards for JavaScript files.
 ## What stayed the same
 - The core functionality of tracking clock-in and clock-out times and calculating total hours remains intact.

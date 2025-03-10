@@ -45,3 +45,7 @@ Thumbs.db
 
 # Project specific ignores
 main.py
+
+# Branch specific ignores
+## archive branch
+timesheets

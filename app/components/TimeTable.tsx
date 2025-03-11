@@ -1,17 +1,31 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import ShiftEntryForm from './ShiftEntryForm';
 import { useShiftContext } from '../contexts/ShiftContext';
 
-const TimeTable: React.Element = () => {
-  const { shifts, refreshShifts, editShiftId, setEditShiftId } = useShiftContext();
+
+/**
+ * Component that displays a table of shifts.
+ *
+ * Props:
+ * - shifts: Array of shift objects. Each shift contains details such as day, location,
+ *   clock-in/clock-out times, and total hours/minutes. By default, an empty array is used.
+ */
+const TimeTable: React.Element = ({ shifts = [] }) => {
+  const { state, dispatch, fetchShifts } = useShiftContext();
+  const [localShifts, setLocalShifts] = useState(shifts);
 
   useEffect(() => {
-    refreshShifts();
-  }, []);
+    if (!localShifts.length) {
+      fetchShifts();
+      setLocalShifts(state.shifts);
+    }
+
+  }, [state.shifts]);
+
 
   const handleEditShiftClick = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
-    setEditShiftId(id);
+    dispatch({ type: 'EDIT_SHIFT', payload: id });
   };
 
   const generateShiftRows: (shifts: Array<object>) => React.JSX.Element[] = (shifts: Array<object>) => {
@@ -20,7 +34,7 @@ const TimeTable: React.Element = () => {
         return <td key={value}>{value}</td>;
       });
 
-      if (shift.id === editShiftId) {
+      if (shift.id === state.editShiftId) {
         return (
           <tr key={shift.id} data-shift-id={shift.id}>
             <td colSpan="7">
@@ -45,8 +59,8 @@ const TimeTable: React.Element = () => {
 
   return (
     <Fragment>
-      {!(shifts) && <h1>Loading Hours Data...</h1>}
-      {shifts && (
+      {!(localShifts) && <h1>Loading Hours Data...</h1>}
+      {localShifts && (
         <table border="1">
           <tbody>
             <tr>
@@ -54,7 +68,7 @@ const TimeTable: React.Element = () => {
                 return <th key={header.toLowerCase()}>{header}</th>;
               })}
             </tr>
-            {generateShiftRows(shifts)}
+            { generateShiftRows(localShifts) }
           </tbody>
         </table>
       )}

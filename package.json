@@ -9,7 +9,7 @@
 	},
 	"scripts": {
 		"watch": "npm run styles -- --ext css --watch & npm run styles -- --ext min.css --env production --watch & npm run scripts -- --watch && kill $!",
-		"dev": "npm run react",
+		"dev": "NODE_ENV=development vite build --config vite.config.mjs",
 		"build": "npm run react || npm run html",
 		"styles": "postcss _assets_src/scss/*.scss _assets_src/scss/**/*.scss _assets_src/scss/*.css _assets_src/scss/**/*.css _assets_src/css/*.css _assets_src/css/**/*.css !_assets_src/scss/_*.scss !_assets_src/scss/**/_*.scss !_assets_src/scss/_*.css !_assets_src/scss/**/_*.css !_assets_src/css/_*.css !_assets_src/css/**/_*.css --dir build/css --map --verbose",
 		"scripts": "vite build --config vite.config.mjs",

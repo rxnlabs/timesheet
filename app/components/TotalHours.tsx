@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useShiftContext } from '../contexts/ShiftContext';
+import { useAppSelector } from '../hooks';
+import { selectTotalHours } from '../slices/shift';
 
 /**
  * Component that displays the total hours worked in the week.
@@ -10,16 +12,16 @@ import { useShiftContext } from '../contexts/ShiftContext';
  * @returns {React.Element} A React component that displays the total hours in a styled container.
  */
 const TotalHours: React.ElementType = ({ hours = 0 }) => {
-  const { state } = useShiftContext();
+  const storeHours = useAppSelector(selectTotalHours);
   const [localHours, setLocalHours] = useState(hours);
 
   useEffect(() => {
-    setLocalHours(state.totalHours|hours);
-  }, [state.totalHours, hours]);
+    setLocalHours(storeHours|hours);
+  }, [storeHours, hours]);
 
   return (
     <div className="total-hours">
-      <h1>My total hours are: {localHours}</h1>
+      <h1>My total hours are: {storeHours}</h1>
     </div>
   );
 };

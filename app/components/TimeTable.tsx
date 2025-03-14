@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import ShiftEntryForm from './ShiftEntryForm';
-import { useShiftContext } from '../contexts/ShiftContext';
-
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { editShift, getShifts, selectEditShiftId, selectShifts, selectTimesheetStatus } from '../slices/shift';
 
 /**
  * Component that displays a table of shifts.
@@ -11,21 +11,39 @@ import { useShiftContext } from '../contexts/ShiftContext';
  *   clock-in/clock-out times, and total hours/minutes. By default, an empty array is used.
  */
 const TimeTable: React.Element = ({ shifts = [] }) => {
-  const { state, dispatch, fetchShifts } = useShiftContext();
+  const dispatch = useAppDispatch();
+  const storeShifts = useAppSelector(selectShifts);
+  const editShiftId = useAppSelector(selectEditShiftId);
+  const timesheetStatus = useAppSelector(selectTimesheetStatus);
   const [localShifts, setLocalShifts] = useState(shifts);
+  let headingMessage = 'No logged hours this week. Log some worked shifts.';
+
+  switch (timesheetStatus) {
+  case 'loading':
+    headingMessage = 'Loading Hours Data...';
+    break;
+  case 'failed':
+    headingMessage = 'Could not load logged shifts. Check log files to make sure a timesheet exists.';
+    break;
+  }
+
 
   useEffect(() => {
-    if (!localShifts.length) {
-      fetchShifts();
-      setLocalShifts(state.shifts);
+    if (!shifts || shifts.length === 0) {
+      dispatch(getShifts());
     }
+  }, [dispatch, shifts]);
 
-  }, [state.shifts]);
+  useEffect(() => {
+    if (storeShifts && storeShifts.length > 0) {
+      setLocalShifts(storeShifts);
+    }
+  }, [storeShifts]); // Dependency on the Redux store shifts
 
 
   const handleEditShiftClick = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
-    dispatch({ type: 'EDIT_SHIFT', payload: id });
+    dispatch(editShift(id));
   };
 
   const generateShiftRows: (shifts: Array<object>) => React.JSX.Element[] = (shifts: Array<object>) => {
@@ -34,7 +52,7 @@ const TimeTable: React.Element = ({ shifts = [] }) => {
         return <td key={value}>{value}</td>;
       });
 
-      if (shift.id === state.editShiftId) {
+      if (shift.id === editShiftId) {
         return (
           <tr key={shift.id} data-shift-id={shift.id}>
             <td colSpan="7">
@@ -57,10 +75,12 @@ const TimeTable: React.Element = ({ shifts = [] }) => {
     return shiftRows;
   };
 
+
+
   return (
     <Fragment>
-      {!(localShifts) && <h1>Loading Hours Data...</h1>}
-      {localShifts && (
+      {(!(localShifts) || localShifts.length === 0) && <h2>{headingMessage}</h2>}
+      {localShifts && localShifts.length > 0 && (
         <table border="1">
           <tbody>
             <tr>

@@ -1,6 +1,15 @@
 import React, { Fragment, useRef } from 'react';
-import { useShiftContext } from '../contexts/ShiftContext';
-import type { Shift } from '../contexts/ShiftContext';
+import type {
+  Shift } from '../slices/shift';
+import {
+  addShift,
+  addFormNotification,
+  getShifts,
+  editShift,
+  selectTimesheetStatus,
+  selectEditShiftId
+} from '../slices/shift';
+import { useAppDispatch, useAppSelector } from '../hooks';
 
 /**
  * Component designed for adding or updating a shift.
@@ -13,59 +22,45 @@ import type { Shift } from '../contexts/ShiftContext';
  * - `clockOut` (string | undefined): The clock-out time for the shift. Optional.
  */
 const ShiftEntryForm: React.FC<Shift> = ({ id, day, location, clockIn, clockOut }) => {
-  const { state, dispatch, fetchShifts } = useShiftContext();
-  const formRef = useRef(null);
+  const dispatch = useAppDispatch();
+  const timesheetStatus = useAppSelector(selectTimesheetStatus);
+  const editShiftId = useAppSelector(selectEditShiftId);
+  const formRef = useRef<HTMLFormElement|null>(null);
   const currentDay = day || new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   const handleSubmit = async (event: React.FormEvent):Promise<void> => {
     event.preventDefault(); // Prevent browser default form submission
-
+    if (formRef == null) {
+      return;
+    }
     // Create FormData instance from the form
     const formData = new FormData(formRef.current);
-
-    // Serialize FormData to URL-encoded format
-    const queryString = new URLSearchParams(formData).toString();
-
-    // Submit the serialized data via AJAX using fetch
-    const response = await fetch('/api.php?endpoint=addtimesheetentry', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: queryString, // Send serialized data as the body
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      dispatch({
-        type: 'SET_NOTIFICATION',
-        payload: { message: `Error adding shift: ${data.message}`, type: 'error' }
-      });
-    } else {
-      let notificationMessage = 'Shift added successfully';
-
-      if (state.editShiftId) {
-        dispatch({
-          type: 'EDIT_SHIFT',
-          payload: null
-        });
-
-        notificationMessage = 'Shift updated successfully.';
-      } else {
-        formRef.current.reset();
-      }
-
-      dispatch({
-        type: 'ADD_SHIFT',
-        payload: {
-          shifts: data,
-          formNotification: { message: notificationMessage }
+    const shiftData = Object.fromEntries(formData.entries());
+    let shiftNotificationMessage = 'Shift added successfully';
+    let shiftNotificationType = 'success';
+    const addShiftResult = await dispatch(addShift(shiftData)).unwrap()
+      .then((response) => {
+        if (Object.hasOwn(response, 'message')) {
+          shiftNotificationMessage = response.message;
         }
+
+        if (Object.hasOwn(response, 'error')) {
+          shiftNotificationType = 'error';
+        } else {
+          dispatch(getShifts());
+        }
+
+        if (editShiftId !== null) {
+          shiftNotificationMessage = 'Shift updated successfully';
+          dispatch(editShift(null));
+        }
+
+        dispatch(addFormNotification({
+          message: shiftNotificationMessage,
+          type: shiftNotificationType
+        }));
       });
 
-      fetchShifts();
-    }
   };
 
   return (
@@ -76,7 +71,7 @@ const ShiftEntryForm: React.FC<Shift> = ({ id, day, location, clockIn, clockOut 
         <label htmlFor="day">Day</label>
         <select name="day" id="day" required defaultValue={currentDay}>
           <option value="" selected disabled>
-                        Select a Day
+            Select a Day
           </option>
           {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((value) => {
             return <option value={value} selected={value === day} key={value}>{value}</option>;
@@ -85,7 +80,7 @@ const ShiftEntryForm: React.FC<Shift> = ({ id, day, location, clockIn, clockOut 
         <label htmlFor="location">Location</label>
         <select name="location" id="location" required>
           <option value="" selected disabled>
-                        Select a Location
+            Select a Location
           </option>
           {['Helpdesk', 'TETC', 'Blackwell', 'Henson', 'UC', 'Fulton', 'Devilbiss', 'Parking Office'].sort().map((value) => {
             return <option value={value} selected={value === location} key={value}>{value}</option>;

@@ -45,7 +45,7 @@ if ($_GET['endpoint'] === 'gettotalhours') {
 }
 
 if ($_GET['endpoint'] === 'addtimesheetentry') {
-
+    $successMessage = 'Shift added successfully';
     try {
         $day = $_POST['day'];
         $location = $_POST['location'];
@@ -59,12 +59,13 @@ if ($_GET['endpoint'] === 'addtimesheetentry') {
         if (isset($_POST['id']) && !empty($_POST['id'])) {
             $id = $_POST['id'];
             $result = $timesheetObj->editTimeEntry($id, $day, $location, $clockIn, $clockOut);
+            $successMessage = 'Shift updated successfully';
         } else {
             $result = $timesheetObj->addTimesheetEntry($day, $location, $clockIn, $clockOut);
         }
 
         if ($result) {
-            $entry = ['message' => 'Timesheet entry added successfully'];
+            $entry = ['message' => $successMessage];
         }
     } catch (\Exception $e) {
         $entry = ['error' => true, 'message' => $e->getMessage()];

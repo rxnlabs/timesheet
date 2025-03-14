@@ -116,12 +116,22 @@ class Timesheet
         if ($timesheet !== false) {
             $fileData = fopen($timesheet, 'r');
             while (($line = fgets($fileData)) !== false) {
-                $lineParts = explode(' ', $line);
+                $cleanLine = trim($line);
+                if (empty($cleanLine)) {
+                    continue;
+                }
+
+                $lineParts = explode(' ', $cleanLine);
+
+                if (empty($lineParts) || count($lineParts) < 7) {
+                    continue;
+                }
+
                 list($id, $day, $location, $clockIn, $clockOut, $minutes, $hours) = $lineParts;
 
                 $id = $this->sanitizeString($id);
-                $day = $this->sanitizeString($day);
-                $location = $this->sanitizeString($location);
+                $day = $this->sanitizeString(urldecode($day));
+                $location = $this->sanitizeString(urldecode($location));
                 $clockIn = $this->sanitizeString($clockIn);
                 $clockOut = $this->sanitizeString($clockOut);
                 $minutes = $this->sanitizeString($minutes);
@@ -374,9 +384,9 @@ class Timesheet
 
         return sprintf(
             "%s %s %s %s %s %d %f",
-            $id,
-            $day,
-            $location,
+            $this->sanitize_key($id),
+            urlencode($day),
+            urlencode($location),
             $normalizedClockIn,
             $normalizedClockOut,
             $totalMinutesWorked,
@@ -493,5 +503,25 @@ class Timesheet
         $input = trim($input);
 
         return $input;
+    }
+
+    /**
+     * Sanitizes a string to ensure it is safe to use as a key.
+     *
+     * This function mimics the behavior of WordPress's sanitize_key function.
+     * It converts the string to lowercase and removes unsafe characters,
+     * allowing only alphanumeric characters, underscores, and dashes.
+     *
+     * @param string $key The key to sanitize.
+     * @return string The sanitized key.
+     */
+    protected function sanitize_key($key) {
+        // Convert to lowercase
+        $key = strtolower($key);
+
+        // Remove all characters that are not a-z, 0-9, underscores, or dashes
+        $key = preg_replace('/[^a-z0-9_\-]/', '', $key);
+
+        return $key;
     }
 }

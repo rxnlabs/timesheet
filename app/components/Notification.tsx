@@ -1,5 +1,7 @@
 import React from 'react';
 import { useShiftContext } from '../contexts/ShiftContext';
+import { useSelector } from 'react-redux';
+import { selectFormNotification } from '../slices/shift';
 
 /**
  * Represents the properties for configuring a notification.
@@ -27,17 +29,17 @@ interface NotificationProps {
  * - `...atts` (object): Additional attributes to spread onto the notification container.
  */
 const Notification: React.FC<NotificationProps> = ({ message, type = 'info', classes, ...atts }) => {
-  const { state } = useShiftContext();
+  const formNotification = useSelector(selectFormNotification);
   const allowedMessageTypes = ['error', 'warning', 'success', 'info'];
 
-  if (!message && state.formNotification !== null && Object.hasOwn(state.formNotification,'message')) {
+  if (!message && formNotification !== null && Object.hasOwn(formNotification,'message')) {
     // @ts-expect-error: message is defined in the shift context
-    message = state.formNotification.message;
+    message = formNotification.message;
   }
 
-  if (!message && state.formNotification !== null && Object.hasOwn(state.formNotification,'type')) {
+  if (!message && formNotification !== null && Object.hasOwn(formNotification,'type')) {
     // @ts-expect-error: type is defined in the shift context
-    type = state.formNotification.type;
+    type = formNotification.type;
   }
 
   if (!allowedMessageTypes.includes(type.toLowerCase())) {

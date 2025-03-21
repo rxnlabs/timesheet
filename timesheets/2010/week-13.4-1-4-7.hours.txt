@@ -1,0 +1,3 @@
+shift-67e30387e4dbd Monday Parking+Office 15:00 16:00 60 1.000000 2010-04-05T15:00:00-04:00
+shift-67e30387e4ecf Tuesday Parking+Office 14:00 15:00 60 1.000000 2010-04-06T14:00:00-04:00
+shift-67e30387e4fdf Monday Parking+Office 10:00 11:00 60 1.000000 2010-04-05T10:00:00-04:00

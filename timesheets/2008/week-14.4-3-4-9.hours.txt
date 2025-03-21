@@ -1,0 +1,2 @@
+shift-67e3037561ecf Tuesday Parking+Office 13:00 14:00 60 1.000000 2008-04-08T13:00:00-04:00
+shift-67e3037561f5e Wednesday Parking+Office 08:00 09:00 60 1.000000 2008-04-09T08:00:00-04:00

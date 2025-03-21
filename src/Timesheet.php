@@ -28,51 +28,75 @@ class Timesheet
      */
     private $uniqIdPrefix = 'shift-';
 
-    public function __construct(string $logDirectory)
+    public function __construct(string $logDirectory, $baseDate = null)
     {
         $this->logDirectory = $logDirectory;
-        $dates = $this->getThisWorkWeek();
+        $dates = $this->getThisWorkWeek($baseDate);
         $this->year = $dates['year'];
         $this->weekNumber = $dates['week_number'];
-        $this->createTimesheet();
+        $this->createTimesheet($baseDate);
     }
 
     /**
-     * Calculate and return the current work week based on a pay period that
-     * starts on Thursday and ends on the following Wednesday.
+     * Retrieves the directory path used for storing the timesheet logs.
      *
-     * @return array An associative array containing the following keys:
-     * - 'start_day': The DateTime object representing the start of the work week (Thursday).
-     * - 'end_day': The DateTime object representing the end of the work week (Wednesday).
-     * - 'week_number': Week number of the start day.
-     * - 'year': The year of the start day.
+     * @return string The path to the timesheet logs.
      */
-    public function getThisWorkWeek(): array
+    public function getLogDirectory(): string
+    {
+        return $this->logDirectory;
+    }
+
+    /**
+     * Calculate and return details of the current work week based on a specified start day
+     * or the current day if no start day is provided. The work week spans from Thursday
+     * to the following Wednesday.
+     *
+     * @param  mixed  $startDay  Optional. The starting day to calculate the work week.
+     *
+     * @return array An associative array containing the details of the work week:
+     *               - 'start_day': The DateTime instance representing the starting Thursday of the work week.
+     *               - 'end_day': The DateTime instance representing the ending Wednesday of the work week.
+     *               - 'week_number': The ISO week number of the work week.
+     *               - 'year': The year in which the work week's Thursday falls.
+     */
+    public function getThisWorkWeek($startDay = null): array
     {
         // Get the Thursday of this work week since the pay period goes from Thursday to the next Wednesday
-        $maybeThisWorkWeekThursday = new \DateTime();
+        // Determine the base date from the input
+        $baseDate = $this->getDateTimeFromParam($startDay);
+        $maybeThisWorkWeekThursday = clone $baseDate;
         $currentDayOfWeek = (int) $maybeThisWorkWeekThursday->format('w'); // 'w' returns day of the week, Sunday = 0
+        $daysDifference = 0;
 
-        // Calculate this work week's Thursday
-        if ($currentDayOfWeek !== 4) {
-            // If today is not Thursday, find the most recent Thursday
-            // subtract 1 from current day of week if today is less than 4 since the day of week
-            // index starts at 0 which is Sunday
-            $daysToSubtract = $currentDayOfWeek < 4 ? (4 - ($currentDayOfWeek - 1)) : 4 - $currentDayOfWeek;
-            $daysToSubtract = abs($daysToSubtract);
-            $maybeThisWorkWeekThursday->modify("-$daysToSubtract days");
+        switch ($currentDayOfWeek) {
+            case 0: // Sunday
+                $daysDifference = -3; // Previous Thursday
+                break;
+            case 1: // Monday
+                $daysDifference = -4; // Previous Thursday
+                break;
+            case 2: // Tuesday
+                $daysDifference = -5; // Previous Thursday
+                break;
+            case 3: // Wednesday
+                $daysDifference = -6; // Previous Thursday
+                break;
+            case 4: // Thursday
+                $daysDifference = 0; // Today is Thursday
+                break;
+            case 5: // Friday
+                $daysDifference = -1; // Previous Thursday
+                break;
+            case 6: // Saturday
+                $daysDifference = -2; // Previous Thursday
+                break;
         }
+        $maybeThisWorkWeekThursday->modify("$daysDifference days");
 
         // Calculate the next Wednesday
-        $nextWednesday = new \DateTime();
-        if ($currentDayOfWeek === 4) {
-            // If today is Thursday, find next Wednesday
-            $nextWednesday->modify('+6 days');
-        } else {
-            // Otherwise, find the closest upcoming Wednesday from today
-            $daysToAdd = $currentDayOfWeek <= 3 ? (3 - $currentDayOfWeek) : (10 - $currentDayOfWeek);
-            $nextWednesday->modify("+$daysToAdd days");
-        }
+        $nextWednesday = clone $maybeThisWorkWeekThursday;
+        $nextWednesday->modify('+6 days');
 
         return [
             'start_day' => $maybeThisWorkWeekThursday,
@@ -80,6 +104,39 @@ class Timesheet
             'week_number' => $maybeThisWorkWeekThursday->format('W'),
             'year' => $maybeThisWorkWeekThursday->format('Y')
         ];
+    }
+
+    /**
+     * Convert the provided parameter into a DateTime object based on its type.
+     * The method accepts a DateTime object, a timestamp, or a date string in the format 'MM/DD/YYYY',
+     * and returns a DateTime object. If the input is invalid, it defaults to the current date.
+     *
+     * @param  \DateTime|int|string  $startDay  The input parameter, which can be a DateTime object,
+     *                                       a Unix timestamp, a string in 'MM/DD/YYYY' format,
+     *                                       or omitted to use the current date.
+     *
+     * @return \DateTime The constructed DateTime object based on the provided input.
+     *
+     * @throws \InvalidArgumentException If the input string does not match the expected date format 'MM/DD/YYYY'.
+     */
+    public function getDateTimeFromParam($startDay = null): \DateTime
+    {
+        if ($startDay === null) {
+            $baseDate = new \DateTime(); // Default to current date
+        } elseif ($startDay instanceof \DateTime) {
+            $baseDate = clone $startDay; // Use the given DateTime object
+        } elseif (is_int($startDay)) {
+            $baseDate = (new \DateTime())->setTimestamp($startDay); // Interpret as a timestamp
+        } elseif (!empty($baseDate) && is_string($startDay)) {
+            $baseDate = \DateTime::createFromFormat('m/d/Y', $startDay); // Parse MM/DD/YYYY
+            if (!$baseDate) {
+                throw new \InvalidArgumentException('Invalid date format. Expected MM/DD/YYYY.');
+            }
+        } else {
+            $baseDate = new \DateTime(); // Default to current date
+        }
+
+        return $baseDate;
     }
 
     /**
@@ -172,6 +229,84 @@ class Timesheet
     }
 
     /**
+     * Sorts timesheet data by work week, organizing the log entries starting from Thursday
+     * through the following Wednesday. Each day is sorted by timestamp, and the updated data
+     * is written back to the log file.
+     *
+     * @param  string  $year  The year used to find the relevant timesheet log file. Defaults to an empty string.
+     * @param  string  $week_number  The week number used to find the relevant timesheet log file. Defaults to an empty string.
+     *
+     * @return void
+     */
+    public function sortTimesheetDataByWorkWeek($year = '', $week_number = '')
+    {
+        $log = $this->findTimesheet($year, $week_number);
+        // Set the work week starting at Thursday and ending at the next week Wednesday
+        $workWeekOrder = ['4' => [],'5' => [], '6' => [], '0' => [], '1' => [], '2' => [], '3' => []];
+        if ($log !== false) {
+            $fileData = fopen($log, 'r');
+            while (($line = fgets($fileData)) !== false) {
+                $cleanLine = trim($line);
+                $shiftDate = $this->findShiftDateTimeInLogLine($cleanLine);
+
+                if ($shiftDate) {
+                    $dayOfWeek = (string)$shiftDate->format('N');
+
+                    if (isset($workWeekOrder[$dayOfWeek])) {
+                        $timestampString = (string)$shiftDate->getTimestamp();
+                        $workWeekOrder[$dayOfWeek][$timestampString] = $cleanLine;
+                    }
+                }
+            }
+
+            foreach ($workWeekOrder as $weekDayNumber => $value) {
+                if (!empty($value) && is_array($value)) {
+                    // sort the shifts by their timestamps
+                    ksort($workWeekOrder[$weekDayNumber], SORT_NUMERIC);
+                    // get rid of the timestamps since we don't need them anymore
+                    $workWeekOrder[$weekDayNumber] = array_values($workWeekOrder[$weekDayNumber]);
+                }
+            }
+
+            // flatten the array so we only have lines of shifts
+            $workWeekOrder = array_merge(...array_values($workWeekOrder));
+
+
+            if (!empty($workWeekOrder)) {
+                $fileData = fopen($log, 'w');
+                foreach ($workWeekOrder as $newShiftLine) {
+                    fwrite($fileData, $newShiftLine . PHP_EOL);
+                }
+                fclose($fileData);
+            }
+        }
+    }
+
+    /**
+     * Extract a DateTime object from a log line string if it contains a valid
+     * DateTime formatted value based on the ATOM (ISO 8601) standard.
+     *
+     * @param  string  $shiftLine  The log line string to search for a DateTime value.
+     *
+     * @return \DateTime|null The extracted DateTime object if found, or null if no valid DateTime is detected.
+     */
+    public function findShiftDateTimeInLogLine(string $shiftLine)
+    {
+        $shiftLine = trim($shiftLine);
+        $data = explode(' ', $shiftLine);
+        foreach ($data as $key => $value) {
+            try {
+                $maybeDateTime = \DateTime::createFromFormat(\DateTime::ATOM, $value);
+                if ($maybeDateTime instanceof \DateTime) {
+                    return $maybeDateTime;
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+    }
+
+    /**
      * Locate a timesheet file based on the provided year and week number.
      *
      * @param  string|int  $year  Optional. The year for which the timesheet is being searched.
@@ -211,12 +346,18 @@ class Timesheet
      * if it already exists. The work week is determined as Thursday to the following Wednesday.
      * Ensures the year directory exists and generates the timesheet filename based on the
      * corresponding week's date range.
+ *
+     * @param  string|int  $year  Optional. The year for which the timesheet is being searched.
+     *  Defaults to internal property if empty or non-numeric.
+     * @param  string|int  $week_number  Optional.
+     *  The week number for which the timesheet is being searched. Defaults to internal property if empty or non-numeric.
      *
      * @return string|bool The path to the created or found timesheet file, or false on failure.
      */
-    public function createTimesheet()
+    public function createTimesheet($baseDate = null)
     {
-        $dates = $this->getThisWorkWeek();
+        $dates = $this->getThisWorkWeek($baseDate);
+        $year = $dates['year'];
         $startDay = $dates['start_day'];
         $endDay = $dates['end_day'];
 
@@ -227,7 +368,7 @@ class Timesheet
         }
 
         // Ensure the directory for the year exists
-        $this->createYearDirectory();
+        $this->createYearDirectory($year);
 
         // Construct the filename for the new timesheet
         $newTimesheet = sprintf(
@@ -252,25 +393,42 @@ class Timesheet
     }
 
     /**
-     * Add a new entry to the timesheet file with details such as day, location,
-     * clock-in time, clock-out time, minutes worked, and hours worked.
+     * Adds a new entry to the timesheet file with the provided day, location, and clock-in/clock-out times.
+     * Creates a new timesheet if none exists for the given base date.
      *
-     * @param  string  $day  The day of the timesheet entry.
-     * @param  string  $location  The location associated with the timesheet entry.
-     * @param  string  $clockIn  The clock-in time in a valid time format.
-     * @param  string  $clockOut  The clock-out time in a valid time format.
+     * @param  string  $day  The day of the timesheet entry (e.g., "Monday", "2023-10-23").
+     * @param  string  $location  The location where the time was logged.
+     * @param  string  $clockIn  The clock-in time for the entry (e.g., "08:00").
+     * @param  string  $clockOut  The clock-out time for the entry (e.g., "16:00").
+     * @param  mixed  $baseDate  An optional base date to identify the timesheet file to add the entry to (null defaults to current date).
      *
-     * @return bool Returns true on successful entry addition, false on failure to open or write to the file.
+     * @return bool True if the entry was successfully added to the timesheet, false otherwise.
      */
-    public function addTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut)
+    public function addTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, $baseDate = null): bool
     {
-        $timesheet = $this->findTimesheet();
+        if ($baseDate) {
+            $baseDate = $this->getDateTimeFromParam($baseDate);
+            $workweek = $this->getThisWorkWeek($baseDate);
+            $timesheet = $this->findTimesheet($workweek['year'], $workweek['week_number']);
+        } else {
+            $timesheet = $this->findTimesheet();
+        }
+
+        if (empty($timesheet)) {
+            $timesheet = $this->createTimesheet($baseDate);
+        }
+
         if ($timesheet !== false) {
+            $dateTimeString = '';
+            // If a base date was passed, copy the ATOM representation of that date
+            if ($baseDate) {
+                $dateTimeString = $baseDate->format(DATE_ATOM);
+            }
             $file = fopen($timesheet, 'a');
             if ($file === false) {
                 return false;
             }
-            $verify = fwrite($file, $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut) . PHP_EOL);
+            $verify = fwrite($file, $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut, null, $dateTimeString) . PHP_EOL);
 
             if ($verify === false) {
                 return false;
@@ -278,6 +436,8 @@ class Timesheet
                 return true;
             }
         }
+
+        return false;
     }
 
     /**
@@ -341,7 +501,7 @@ class Timesheet
      *                including day, location, normalized clock-in and clock-out times,
      *                and hours and minutes worked.
      */
-    public function normalizeTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, null|string $id = null): string
+    public function normalizeTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, null|string $id = null, null|string $dateTimeFormat = null): string
     {
         $day = $this->sanitizeString($day);
         $location = $this->sanitizeString($location);
@@ -379,19 +539,30 @@ class Timesheet
         $normalizedClockOut = sprintf("%02d:%02d", $clockOutHour, $clockOutMin);
 
         if ($id === null) {
-            $id = uniqid($this->uniqIdPrefix);
+            $id = $this->generateEntryID();
         }
 
         return sprintf(
-            "%s %s %s %s %s %d %f",
-            $this->sanitize_key($id),
+            "%s %s %s %s %s %d %f %s",
+            $this->sanitizeKey($id),
             urlencode($day),
             urlencode($location),
             $normalizedClockIn,
             $normalizedClockOut,
             $totalMinutesWorked,
-            $hoursMinutesPercentage
+            $hoursMinutesPercentage,
+            $dateTimeFormat ?: ''
         );
+    }
+
+    /**
+     * Generate a unique entry ID by using a defined prefix and a unique identifier.
+     *
+     * @return string The generated unique entry ID.
+     */
+    public function generateEntryID(): string
+    {
+        return uniqid($this->uniqIdPrefix);
     }
 
     /**
@@ -462,9 +633,10 @@ class Timesheet
      *
      * @return bool True if the directory was successfully created or already exists, false otherwise.
      */
-    public function createYearDirectory()
+    public function createYearDirectory($directoryYear = null): bool
     {
-        $directory = $this->logDirectory . '/' . $this->year;
+        $directoryYear = is_numeric($directoryYear) ? $directoryYear : $this->year;
+        $directory = $this->logDirectory . '/' . $directoryYear;
 
         if (!is_dir($directory)) {
             return mkdir($directory, 0755, true);
@@ -515,7 +687,8 @@ class Timesheet
      * @param string $key The key to sanitize.
      * @return string The sanitized key.
      */
-    protected function sanitize_key($key) {
+    protected function sanitizeKey($key)
+    {
         // Convert to lowercase
         $key = strtolower($key);
 

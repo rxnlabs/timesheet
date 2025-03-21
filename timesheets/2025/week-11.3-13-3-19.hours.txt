@@ -1,8 +1,79 @@
-shift-67d35508b55e4 Thursday Blackwell 02:25 05:30 185 3.083333
-shift-67d35513cca4b Thursday Fulton 04:20 08:15 235 3.916667
-shift-67d356962232e Thursday Helpdesk 01:20 05:30 250 4.166667
-shift-67d356a59d713 Thursday TETC 04:20 08:15 235 3.916667
-shift-67d35788c4bb5 Thursday Henson 03:15 07:15 240 4.000000
-shift-67d35e846667e Thursday Devilbiss 02:25 05:30 185 3.083333
-shift-67d35ec22368d Thursday Blackwell 02:25 09:30 425 7.083333
-shift-67d45f28a3174 Friday Blackwell 04:20 07:00 160 2.666667
+shift-67d9e2a1a372c Thursday Blackwell 17:30 17:30 185 3.083333 2025-03-13T14:25:00-04:00
+shift-67d9e2a1a3738 Thursday Fulton 20:15 20:15 235 3.916667 2025-03-13T16:20:00-04:00
+shift-67d9e2a1a3741 Thursday Helpdesk 17:30 17:30 250 4.166667 2025-03-13T13:20:00-04:00
+shift-67d9e2a1a374a Thursday TETC 20:15 20:15 235 3.916667 2025-03-13T16:20:00-04:00
+shift-67d9e2a1a3751 Thursday Henson 19:15 19:15 240 4.000000 2025-03-13T15:15:00-04:00
+shift-67d9e2a1a3759 Thursday Devilbiss 17:30 17:30 185 3.083333 2025-03-13T14:25:00-04:00
+shift-67d9e2a1a3761 Thursday Blackwell 21:30 21:30 425 7.083333 2025-03-13T14:25:00-04:00
+shift-67d9e2a1a3769 Friday Blackwell 19:00 19:00 160 2.666667 2025-03-14T16:20:00-04:00
+shift-67d9e801b6d9d Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6dca Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6df1 Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6e19 Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6e3d Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6e62 Tuesday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6e89 Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6eaf Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6ed7 Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6efd Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6f23 Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b6f4c Thursday Parking+Office 13:00 14:00 60 1.000000 
+shift-67d9e801b713d Wednesday Parking+Office 10:00 13:00 180 3.000000 
+shift-67d9e801b7168 Wednesday Parking+Office 10:00 13:00 180 3.000000 
+shift-67d9e801b7192 Friday Parking+Office 10:00 13:00 180 3.000000 
+shift-67d9e801b71bc Friday Parking+Office 10:00 13:00 180 3.000000 
+shift-67d9e801b7bb2 Monday Parking+Office 11:00 14:00 180 3.000000 
+shift-67d9e801b7ea5 Monday Parking+Office 11:00 14:00 180 3.000000 
+shift-67d9e801b7ed0 Monday Parking+Office 11:00 14:00 180 3.000000 
+shift-67d9e801b9137 Friday Parking+Office 12:00 15:00 180 3.000000 
+shift-67d9e801b9165 Friday Parking+Office 12:00 15:00 180 3.000000 
+shift-67d9e801b9192 Monday Parking+Office 12:00 15:00 180 3.000000 
+shift-67d9e801b95be Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b95e9 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9611 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9639 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9661 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b968a Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b96b4 Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b96dd Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9705 Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b972e Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9756 Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b977f Wednesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b97a5 Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b97cf Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b97f3 Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9819 Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b983d Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9867 Friday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b988f Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b98b5 Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9925 Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b9955 Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b997e Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801b99a6 Monday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801ba4d8 Monday Parking+Office 09:00 12:00 180 3.000000 
+shift-67d9e801bc5a2 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801bc5cc Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801bc5f7 Tuesday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801bc63b Thursday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801bc668 Thursday Parking+Office 08:00 09:00 60 1.000000 
+shift-67d9e801bcedd Tuesday Fulton 21:45 22:45 60 1.000000 
+shift-67d9e801bcf0d Tuesday Fulton 21:45 22:45 60 1.000000 
+shift-67d9e801bcf3b Tuesday Fulton 21:45 22:45 60 1.000000 
+shift-67d9e801bdf26 Monday Parking+Office 13:00 15:00 120 2.000000 
+shift-67d9e801c00f8 Thursday Parking+Office 08:00 11:00 180 3.000000 
+shift-67d9e801c1e7a Monday Parking+Office 16:00 17:00 60 1.000000 
+shift-67d9e801c1ead Monday Parking+Office 16:00 17:00 60 1.000000 
+shift-67d9e801c1ee0 Monday Parking+Office 16:00 17:00 60 1.000000 
+shift-67d9e801c3161 Thursday Parking+Office 09:00 10:00 60 1.000000 
+shift-67d9e801c318f Thursday Parking+Office 09:00 10:00 60 1.000000 
+shift-67d9e801c31bc Thursday Parking+Office 09:00 10:00 60 1.000000 
+shift-67d9e801c3935 Thursday Parking+Office 09:00 12:00 180 3.000000 
+shift-67d9e801c4849 Friday Devilbiss 19:45 22:45 180 3.000000 
+shift-67d9e801c5e28 Thursday Henson 22:45 23:45 60 1.000000 
+shift-67d9e801c5e64 Thursday Henson 22:45 23:45 60 1.000000 
+shift-67d9e801c5e96 Thursday Henson 22:45 23:45 60 1.000000 
+shift-67d9e801cae81 Wednesday Helpdesk 18:45 19:45 60 1.000000 
+shift-67d9e801caebe Wednesday Helpdesk 18:45 19:45 60 1.000000 
+shift-67d9e801caeef Wednesday Helpdesk 18:45 19:45 60 1.000000 

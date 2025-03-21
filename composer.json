@@ -7,6 +7,14 @@
            "rxnlabs\\Timesheet\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "rxnlabs\\Timesheet\\": "bin/src"
+        },
+        "files": [
+            "bin/src/Functions.php"
+        ]
+    },
     "require": {
         "slim/http": "^1.4",
         "nyholm/psr7": "^1.8",
@@ -17,6 +25,7 @@
     },
     "scripts": {
         "phpcs": "vendor/bin/phpcs",
-        "phpcbf": "vendor/bin/phpcbf"
+        "phpcbf": "vendor/bin/phpcbf",
+        "seed-timesheets": "php ./bin/TimesheetSeeder.php"
     }
 }

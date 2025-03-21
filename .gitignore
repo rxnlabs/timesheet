@@ -43,5 +43,8 @@ ehthumbs.db
 Thumbs.db
 *.sql
 
+# Package installer dependencies
+node_modules
+
 # Project specific ignores
 main.py

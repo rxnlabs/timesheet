@@ -10,8 +10,15 @@ $responseFactory = new DecoratedResponseFactory($nyholmFactory, $nyholmFactory);
 $timesheetObj = new Timesheet(__DIR__ . '/../timesheets');
 
 if ($_GET['endpoint'] === 'gettimesheet') {
+    $year = isset($_GET['year']) ? $_GET['year'] : null;
+    $week = isset($_GET['week']) ? $_GET['week'] : null;
+
     try {
-        $timesheetData = $timesheetObj->getTimesheetData();
+        if (!empty($year) && !empty($week) && is_numeric($year) && is_numeric($week)) {
+            $timesheetData = $timesheetObj->getTimesheetData(intval($year), intval($week));
+        } else {
+            $timesheetData = $timesheetObj->getTimesheetData();
+        }
     } catch (\Exception $e) {
         $timesheetData = ['error' => true, 'message' => $e->getMessage()];
     }
@@ -24,6 +31,7 @@ if ($_GET['endpoint'] === 'gettimesheet') {
 
     $response = $response->withJson($timesheetData);
     (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+    exit;
 }
 
 if ($_GET['endpoint'] === 'gettotalhours') {
@@ -42,6 +50,7 @@ if ($_GET['endpoint'] === 'gettotalhours') {
 
     $response = $response->withJson($timesheetData);
     (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+    exit;
 }
 
 if ($_GET['endpoint'] === 'addtimesheetentry') {
@@ -61,7 +70,30 @@ if ($_GET['endpoint'] === 'addtimesheetentry') {
             $result = $timesheetObj->editTimeEntry($id, $day, $location, $clockIn, $clockOut);
             $successMessage = 'Shift updated successfully';
         } else {
-            $result = $timesheetObj->addTimesheetEntry($day, $location, $clockIn, $clockOut);
+            $workWeekStartDateThursday = $timesheetObj->getThisWorkWeek()['start_day'];
+            $entryDate                 = clone $workWeekStartDateThursday;
+            switch (strtolower($day)) {
+                case 'monday':
+                    $entryDate->modify('+4 days');
+                    break;
+                case 'tuesday':
+                    $entryDate->modify('+5 days');
+                    break;
+                case 'wednesday':
+                    $entryDate->modify('+6 days');
+                    break;
+                case 'friday':
+                    $entryDate->modify('+1 days');
+                    break;
+                case 'saturday':
+                    $entryDate->modify('+2 days');
+                    break;
+                case 'sunday':
+                    $entryDate->modify('+3 days');
+                    break;
+            }
+
+            $result = $timesheetObj->addTimesheetEntry($day, $location, $clockIn, $clockOut, $entryDate);
         }
 
         if ($result) {
@@ -79,6 +111,7 @@ if ($_GET['endpoint'] === 'addtimesheetentry') {
 
     $response = $response->withJson($entry);
     (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+    exit;
 }
 
 if ($_GET['endpoint'] === 'gethisworkweek') {
@@ -86,4 +119,13 @@ if ($_GET['endpoint'] === 'gethisworkweek') {
     $response = $responseFactory->createResponse(200, 'OK');
     $response = $response->withJson($yearweek);
     (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+    exit;
+}
+
+if ($_GET['endpoint'] === 'getlogweeks') {
+    $data = $timesheetObj->getTimesheetLogWeeks();
+    $response = $responseFactory->createResponse(200, 'OK');
+    $response = $response->withJson($data);
+    (new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+    exit;
 }

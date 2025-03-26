@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { RootState, AppThunk } from '../stores/ShiftStore';
 import { useAppDispatch } from '../hooks';
+import { act } from 'react';
 
 /**
  * Represents a work shift with  properties for details ID, day, location, and clock-in/out times.
@@ -36,7 +37,11 @@ export interface ShiftState {
   totalHours: number
   editShiftId: string | null
   formNotification: { message: string, type: string } | null,
-  timesheetStatus: 'idle' | 'loading' | 'loaded' | 'failed'
+  timesheetStatus: 'idle' | 'loading' | 'loaded' | 'failed',
+  historicalLogYear: number | null,
+  historicalLogWeek: number | null,
+  logHistory: Array<object>,
+  logHistoryStatus: 'idle' | 'loading' | 'loaded' | 'failed'
 };
 
 /**
@@ -56,7 +61,11 @@ const initialState: ShiftState = {
   totalHours: 0,
   editShiftId: null,
   formNotification: null,
-  timesheetStatus: 'idle'
+  timesheetStatus: 'idle',
+  historicalLogYear: null,
+  historicalLogWeek: null,
+  logHistory: [],
+  logHistoryStatus: 'idle'
 };
 
 /**
@@ -70,7 +79,13 @@ export const shiftSlice = createSlice({
       state.editShiftId = action.payload;
     },
     addFormNotification: (state, action: PayloadAction<object>) => {
-      state.formNotification = action.payload;
+      state.formNotification = { message: action.payload.message, type: action.payload.type };
+    },
+    setHistoricalLogYear: (state, action: PayloadAction<number|null>) => {
+      state.historicalLogYear = action.payload;
+    },
+    setHistoricalLogWeek: (state, action: PayloadAction<number|null>) => {
+      state.historicalLogWeek = action.payload;
     }
   },
   extraReducers: builder => {
@@ -95,6 +110,19 @@ export const shiftSlice = createSlice({
       .addCase(addShift.rejected, (state) => {
         state.timesheetStatus = 'failed';
         state.formNotification = { message: 'Error adding shift', type: 'error' };
+      })
+      .addCase(getLogWeeks.pending, (state) => {
+        state.logHistoryStatus = 'loading';
+      })
+      .addCase(getLogWeeks.fulfilled, (state, action) => {
+        state.logHistoryStatus = 'loaded';
+        const payload = action.payload;
+        payload.map((item: object) => {
+          state.logHistory.push({ year: parseInt(item.year), weeks: item.weeks });
+        });
+      })
+      .addCase(getLogWeeks.rejected, (state) => {
+        state.logHistoryStatus = 'failed';
       });
   }
 });
@@ -110,14 +138,20 @@ export const shiftSlice = createSlice({
  */
 export const getShifts = createAsyncThunk(
   'shift/getShiftsFetch',
-  async () => {
+  async (args: { year: number; week: number } | null) => {
     try {
-      const response = await fetch('/api.php?endpoint=gettimesheet', {
+      let endpoint:string = '/api.php?endpoint=gettimesheet';
+
+      if (args && Number.isInteger(args.year) && Number.isInteger(args.week)) {
+        endpoint += `&year=${args.year}&week=${args.week}`;
+      }
+
+      const response = await fetch(endpoint, {
         method: 'GET',
       });
       return await response.json();
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 );
@@ -150,12 +184,41 @@ export const addShift = createAsyncThunk(
   }
 );
 
+/**
+ * getLogWeeks is an asynchronous Redux thunk action created using createAsyncThunk.
+ * It is responsible for fetching the log weeks data from the server.
+ * The function sends a GET request to the endpoint '/api.php?endpoint=getlogweeks'
+ * and processes the JSON response.
+ *
+ * This thunk provides full lifecycle actions: pending, fulfilled, and rejected,
+ * which can be used to handle the state of the API call in the Redux store.
+ *
+ * @constant
+ * @type {AsyncThunk}
+ */
+export const getLogWeeks = createAsyncThunk(
+  'shift/getLogWeeksFetch',
+  async () => {
+    try {
+      const response = await fetch('/api.php?endpoint=getlogweeks');
+      return await response.json();
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+);
+
 // Selectors
 export const selectShifts = (state: RootState) => state.shift.shifts;
 export const selectTotalHours = (state: RootState) => state.shift.totalHours;
 export const selectEditShiftId = (state: RootState) => state.shift.editShiftId;
 export const selectTimesheetStatus = (state: RootState) => state.shift.timesheetStatus;
 export const selectFormNotification = (state: RootState) => state.shift.formNotification;
+export const selectShiftYear = (state: RootState) => state.shift.historicalLogYear;
+export const selectShiftWeek = (state: RootState) => state.shift.historicalLogWeek;
+export const selectLogHistory = (state: RootState) => state.shift.logHistory;
+export const selectLogHistoryStatus = (state: RootState) => state.shift.logHistoryStatus;
 
-export const { editShift, addFormNotification } = shiftSlice.actions;
+export const { editShift, addFormNotification, setHistoricalLogYear, setHistoricalLogWeek } = shiftSlice.actions;
 export default  shiftSlice.reducer;

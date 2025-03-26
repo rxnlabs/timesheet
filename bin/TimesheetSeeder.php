@@ -8,7 +8,7 @@ use rxnlabs\Timesheet\Timesheet;
 use rxnlabs\Timesheet\Job;
 use rxnlabs\Timesheet\Semester;
 $timesheet = new Timesheet(__DIR__ . '/../timesheets');
-//\rxnlabs\Timesheet\updateHistoricalTimesheets($timesheet);
+\rxnlabs\Timesheet\updateHistoricalTimesheets($timesheet);
 
 $parkingJob = new Job(
     name:'Parking Office',

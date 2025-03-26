@@ -30,7 +30,7 @@ const ShiftEntryForm: React.FC<Shift> = ({ id, day, location, clockIn, clockOut 
 
   const handleSubmit = async (event: React.FormEvent):Promise<void> => {
     event.preventDefault(); // Prevent browser default form submission
-    if (formRef == null) {
+    if (formRef === null) {
       return;
     }
     // Create FormData instance from the form

@@ -193,6 +193,31 @@ class Timesheet
                 $clockOut = $this->sanitizeString($clockOut);
                 $minutes = $this->sanitizeString($minutes);
                 $hours = $this->sanitizeString($hours);
+
+                if (!empty($clockIn)) {
+                    $clockIn = explode(':', $clockIn);
+
+                    $clockInAntePostMeridiem = 'a.m.';
+                    if ((int)$clockIn[0] > 12) {
+                        $clockIn[0] -= 12;
+                        $clockInAntePostMeridiem = 'p.m.';
+                    }
+
+                    $clockIn = implode(':', $clockIn) . ' ' . $clockInAntePostMeridiem;
+                }
+
+                if (!empty($clockOut)) {
+                    $clockOut = explode(':', $clockOut);
+
+                    $clockOutAntePostMeridiem = 'a.m.';
+                    if ((int)$clockOut[0] > 12) {
+                        $clockOut[0] -= 12;
+                        $clockOutAntePostMeridiem = 'p.m.';
+                    }
+
+                    $clockOut = implode(':', $clockOut) . ' ' . $clockOutAntePostMeridiem;
+                }
+
                 // show clock-in data even if there is no clock-out data
                 if (empty($day) || empty($location) || empty($clockIn)) {
                     continue;
@@ -290,7 +315,7 @@ class Timesheet
      *
      * @return \DateTime|null The extracted DateTime object if found, or null if no valid DateTime is detected.
      */
-    public function findShiftDateTimeInLogLine(string $shiftLine)
+    public function findShiftDateTimeInLogLine(string $shiftLine): \DateTime|null
     {
         $shiftLine = trim($shiftLine);
         $data = explode(' ', $shiftLine);
@@ -330,6 +355,12 @@ class Timesheet
         $directory = $this->logDirectory . '/' . $year;
         $files = glob($directory . '/*.txt');
         $foundTimesheet = false;
+
+        // make sure that the week number has a leading 0
+        if (strlen((string)$week_number) < 2) {
+            $week_number = '0' . strval($week_number);
+        }
+
         foreach ($files as $file) {
             $fileName = basename($file);
             if (str_starts_with($fileName, 'week-' . $week_number)) {
@@ -400,35 +431,30 @@ class Timesheet
      * @param  string  $location  The location where the time was logged.
      * @param  string  $clockIn  The clock-in time for the entry (e.g., "08:00").
      * @param  string  $clockOut  The clock-out time for the entry (e.g., "16:00").
-     * @param  mixed  $baseDate  An optional base date to identify the timesheet file to add the entry to (null defaults to current date).
+     * @param  mixed  $clockInBaseDateTime  An optional base date to identify the timesheet file to add the entry to (null defaults to current date).
      *
      * @return bool True if the entry was successfully added to the timesheet, false otherwise.
      */
-    public function addTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, $baseDate = null): bool
+    public function addTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, $clockInBaseDateTime = null): bool
     {
-        if ($baseDate) {
-            $baseDate = $this->getDateTimeFromParam($baseDate);
-            $workweek = $this->getThisWorkWeek($baseDate);
-            $timesheet = $this->findTimesheet($workweek['year'], $workweek['week_number']);
+        if ($clockInBaseDateTime) {
+            $clockInBaseDateTime = $this->getDateTimeFromParam($clockInBaseDateTime);
+            $workweek            = $this->getThisWorkWeek($clockInBaseDateTime);
+            $timesheet           = $this->findTimesheet($workweek['year'], $workweek['week_number']);
         } else {
             $timesheet = $this->findTimesheet();
         }
 
         if (empty($timesheet)) {
-            $timesheet = $this->createTimesheet($baseDate);
+            $timesheet = $this->createTimesheet($clockInBaseDateTime);
         }
 
         if ($timesheet !== false) {
-            $dateTimeString = '';
-            // If a base date was passed, copy the ATOM representation of that date
-            if ($baseDate) {
-                $dateTimeString = $baseDate->format(DATE_ATOM);
-            }
             $file = fopen($timesheet, 'a');
             if ($file === false) {
                 return false;
             }
-            $verify = fwrite($file, $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut, null, $dateTimeString) . PHP_EOL);
+            $verify = fwrite($file, $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut, null, $clockInBaseDateTime) . PHP_EOL);
 
             if ($verify === false) {
                 return false;
@@ -466,8 +492,11 @@ class Timesheet
             // Check if ID exists in the file and replace the corresponding line
             $found = false;
             foreach ($lines as $key => $line) {
-                if (str_starts_with($line, $id)) { // Match the ID at the start of the line
-                    $lines[$key] = $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut, $id);
+                if (str_starts_with($line, $id)) {
+                    // Match the ID at the start of the line
+                    // Find the clock-in datetime that the entry was originally added so we can update the datetime with a new data.
+                    $entryDateTime = $this->findShiftDateTimeInLogLine($line);
+                    $lines[$key] = $this->normalizeTimesheetEntry($day, $location, $clockIn, $clockOut, $id, $entryDateTime);
                     $found = true;
                     break;
                 }
@@ -487,21 +516,19 @@ class Timesheet
     }
 
     /**
-     * Normalize a timesheet entry by validating and adjusting the clock-in and
-     * clock-out times, calculating the total hours and minutes worked, and formatting
-     * the output for consistent representation.
+     * Normalize a timesheet entry by validating and processing input values such as day, location, clock-in, and clock-out times.
+     * Calculates total hours worked, formats time entries, and generates additional metadata for the entry.
      *
-     * @param  string  $day  The day of the timesheet entry.
-     * @param  string  $location  The location associated with the entry.
-     * @param  string  $clockIn  The clock-in time in a string format (e.g., "HH:MM").
-     * @param  string  $clockOut  The clock-out time in a string format (e.g., "HH:MM").
-     * @param null|string $id The ID to use for the entry
+     * @param  string  $day  The day of the timesheet entry (e.g., "Monday").
+     * @param  string  $location  The location corresponding to the timesheet entry.
+     * @param  string  $clockIn  The clock-in time in a valid time format (e.g., "08:00").
+     * @param  string  $clockOut  The clock-out time in a valid time format (e.g., "17:00").
+     * @param  null|string  $id  Optional identifier for the timesheet entry. If not provided, a new one is generated.
+     * @param  null|\DateTime  $clockInDateTimeFormat  Optional DateTime object representing the clock-in date and time.
      *
-     * @return string A formatted string representing the normalized timesheet entry,
-     *                including day, location, normalized clock-in and clock-out times,
-     *                and hours and minutes worked.
+     * @return string A normalized string representation of the timesheet entry, including calculated time worked and metadata.
      */
-    public function normalizeTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, null|string $id = null, null|string $dateTimeFormat = null): string
+    public function normalizeTimesheetEntry(string $day, string $location, string $clockIn, string $clockOut, null|string $id = null, null|\DateTime $clockInDateTimeFormat = null): string
     {
         $day = $this->sanitizeString($day);
         $location = $this->sanitizeString($location);
@@ -515,7 +542,8 @@ class Timesheet
         [$clockInHour, $clockInMin] = $clockInTime;
         [$clockOutHour, $clockOutMin] = $clockOutTime;
 
-        // Adjust for clock-out past midnight (if necessary)
+        // Adjust for clock-out past midnight (if necessary). This can
+        // occur if we are working a 24-hour lab shift the last week of the semester.
         if ($clockOutHour < $clockInHour) {
             $clockOutHour += 12;
         }
@@ -542,6 +570,13 @@ class Timesheet
             $id = $this->generateEntryID();
         }
 
+        // If a base date was passed, copy the ATOM representation of that date
+        if ($clockInDateTimeFormat instanceof \DateTime) {
+            // set the time of the entry to be the clockin time
+            $clockInDateTimeFormat->setTime($clockInHour, $clockInMin);
+            $clockInDateTimeFormat = $clockInDateTimeFormat->format(DATE_ATOM);
+        }
+
         return sprintf(
             "%s %s %s %s %s %d %f %s",
             $this->sanitizeKey($id),
@@ -551,7 +586,7 @@ class Timesheet
             $normalizedClockOut,
             $totalMinutesWorked,
             $hoursMinutesPercentage,
-            $dateTimeFormat ?: ''
+            $clockInDateTimeFormat ?: ''
         );
     }
 
@@ -575,19 +610,16 @@ class Timesheet
      */
     private function parseTime(string $time): array
     {
-        if (strpos($time, ":") === false) {
+        if (str_contains($time, ":") === false) {
             throw new \Exception("Time must include a colon (e.g., '12:30').");
         }
 
         $timeParts = explode(":", $time);
-        if (
-            count($timeParts) !== 2
-            || strlen($timeParts[0]) > 2
-            || strlen($timeParts[1]) !== 2
-            || !is_numeric((int)$timeParts[0])
-            || !is_numeric((int)$timeParts[1])
-        ) {
-            throw new \Exception("Invalid time format. Please enter the time in the 'HH:MM' format (e.g., '12:30'). Do not include 'am' or 'pm' identifiers.");
+
+        if (str_contains(strtolower($timeParts[1]), 'pm') || str_contains(strtolower($timeParts[1]), 'p.m')) {
+            $timeParts[0] = (int)$timeParts[0] + 12;
+        } elseif (str_contains(strtolower($timeParts[1]), 'am') || str_contains(strtolower($timeParts[1]), 'a.m')) {
+            $timeParts[0] = (int)$timeParts[0];
         }
 
         return [(int)$timeParts[0], (int)$timeParts[1]];
@@ -696,5 +728,52 @@ class Timesheet
         $key = preg_replace('/[^a-z0-9_\-]/', '', $key);
 
         return $key;
+    }
+
+    /**
+     * Retrieves timesheet log weeks organized by year.
+     *
+     * This method scans a log directory, identifies valid timesheet log files
+     * based on their naming convention, and extracts week numbers grouped by
+     * the corresponding year. Only directories named as 4-digit years are
+     * considered, and only files matching the timesheet naming pattern are processed.
+     *
+     * @return array An associative array where the keys are year strings (e.g., "2023")
+     *               and the values are arrays of integers representing the week numbers.
+     */
+    public function getTimesheetLogWeeks()
+    {
+        $data = [];
+        $logFolder   = $this->getLogDirectory();
+        $directories = new \DirectoryIterator($logFolder);
+
+        foreach ($directories as $fileInfo) {
+            $weeks = [];
+            if ($fileInfo->isFile() || $fileInfo->isDot()) {
+                continue;
+            }
+
+            $timesheetYearDirectoryName = $fileInfo->getFilename();
+            if (! preg_match('/^\d{4}$/', $timesheetYearDirectoryName)) {
+                continue;
+            }
+
+            $fileSearch = new \DirectoryIterator($logFolder . DIRECTORY_SEPARATOR . $timesheetYearDirectoryName);
+            foreach ($fileSearch as $shouldBeFile) {
+                $file = $shouldBeFile->getFilename();
+                // Skip non-timesheet files
+                if (! preg_match('/^week-(\d+)\.\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2}\.hours\.txt$/', $file, $matches)) {
+                    continue;
+                }
+
+                // Get the week number from the log file name (e.g. 'week-16.4-22-4-28.hours.txt')
+                $weekNumber = (int)$matches[1];
+                $weeks[] = (int)$weekNumber;
+            }
+
+            $data[] = ['year' => $timesheetYearDirectoryName, 'weeks' => $weeks];
+        }
+
+        return $data;
     }
 }

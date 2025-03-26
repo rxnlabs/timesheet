@@ -2,6 +2,10 @@
 
 [Read `archive` branch README for information about the project.](https://github.com/rxnlabs/timesheet)
 
+## v5
+- [Release link](https://github.com/rxnlabs/timesheet/releases/tag/php%2Breact.v5)
+- **TL;DR:** Added the ability to view historical timesheets and enhanced logging accuracy.
+
 ## v4
 - [Release link](https://github.com/rxnlabs/timesheet/releases/tag/php%2Breact.v4)
 - **TL;DR:** Added a Timesheet Generator to recreate historical timesheets based on past jobs and semesters.

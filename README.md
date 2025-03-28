@@ -2,6 +2,10 @@
 
 [Read `archive` branch README for information about the project.](https://github.com/rxnlabs/timesheet)
 
+## v6
+- [Release link](https://github.com/rxnlabs/timesheet/releases/tag/php%2Breact.v6)
+- **TL;DR:** Added React Router for multi-page navigation to view the current timesheet and historical timesheets across years on separate pages.
+
 ## v5
 - [Release link](https://github.com/rxnlabs/timesheet/releases/tag/php%2Breact.v5)
 - **TL;DR:** Added the ability to view historical timesheets and enhanced logging accuracy.

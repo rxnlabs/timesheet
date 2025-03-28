@@ -64,14 +64,7 @@ const TimeHistoryForm = () => {
     const week = parseInt(formData.get('week') as string);
     dispatch(setHistoricalLogYear(year));
     dispatch(setHistoricalLogWeek(week));
-    dispatch(getShifts({ year, week }));
-  };
-
-  const handleReset = (event: React.FormEvent<HTMLFormElement>) => {
-    dispatch(setHistoricalLogYear(null));
-    dispatch(setHistoricalLogWeek(null));
-    sortSetWeeks(logHistory[0].weeks);
-    dispatch(getShifts());
+    dispatch(getShifts({ year: year, week: week }));
   };
 
   const generateYearOptions: (history: Array<object>) => React.JSX.Element[] = (history: Array<object>): React.JSX.Element[] => {
@@ -104,7 +97,7 @@ const TimeHistoryForm = () => {
     <Fragment>
       {(!(logHistory) || logHistory.length === 0) && <h2>{headingMessage}</h2>}
       {logHistory && logHistory.length > 0 && (
-        <form className="time-history-form" onSubmit={handleSubmit} onReset={handleReset} ref={formRef}>
+        <form className="time-history-form" onSubmit={handleSubmit} ref={formRef}>
           <select name="year" id="year" defaultValue={currentYear} onChange={handleYearChange}>
             <option value="" selected disabled>
               Select a Year
@@ -120,7 +113,6 @@ const TimeHistoryForm = () => {
           </select>
 
           <button type="submit">Get Old Shifts</button>
-          <button type="reset">Show Current Week Shifts</button>
 
         </form>
       )}

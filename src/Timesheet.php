@@ -771,7 +771,18 @@ class Timesheet
                 $weeks[] = (int)$weekNumber;
             }
 
-            $data[] = ['year' => $timesheetYearDirectoryName, 'weeks' => $weeks];
+            sort($weeks);
+            $data[$timesheetYearDirectoryName] = $weeks;
+        }
+
+        if (!empty($data)) {
+            $sortedData = [];
+            // sort by year in descending order
+            krsort($data);
+            foreach ($data as $year => $weeks) {
+                $sortedData[] = ['year' => $year, 'weeks' => $weeks];
+            }
+            $data = $sortedData;
         }
 
         return $data;

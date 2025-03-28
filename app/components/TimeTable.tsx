@@ -16,13 +16,13 @@ import {
  * Props:
  * - shifts: Array of shift objects. Each shift contains details such as day, location,
  *   clock-in/clock-out times, and total hours/minutes. By default, an empty array is used.
+ *
  */
-const TimeTable: React.Element = ({ shifts = [] }) => {
+const TimeTable  = ({ shifts = [], skipDefaultLoad = false }) => {
   const dispatch = useAppDispatch();
   const storeShifts = useAppSelector(selectShifts);
   const editShiftId = useAppSelector(selectEditShiftId);
   const timesheetStatus = useAppSelector(selectTimesheetStatus);
-  const [localShifts, setLocalShifts] = useState(shifts);
   const selectedShiftWeek = useAppSelector(selectShiftWeek);
   let headingMessage = 'No logged hours this week. Log some worked shifts.';
 
@@ -37,14 +37,14 @@ const TimeTable: React.Element = ({ shifts = [] }) => {
 
 
   useEffect(() => {
-    if (storeShifts.length === 0) {
-      dispatch(getShifts());
-    }
-  }, [dispatch, shifts]);
+    if (storeShifts.length === 0 && skipDefaultLoad === false) {
+      const dispatchPromise = dispatch(getShifts(null));
 
-  useEffect(() => {
-    setLocalShifts(storeShifts);
-  }, [storeShifts]); // Dependency on the Redux store shifts
+      return() => {
+        dispatchPromise.abort();
+      };
+    }
+  }, []);
 
 
   const handleEditShiftClick = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>): void => {
@@ -94,8 +94,8 @@ const TimeTable: React.Element = ({ shifts = [] }) => {
 
   return (
     <Fragment>
-      {(!(localShifts) || localShifts.length === 0) && <h2>{headingMessage}</h2>}
-      {localShifts && localShifts.length > 0 && (
+      {(!(storeShifts) || storeShifts.length === 0) && <h2>{headingMessage}</h2>}
+      {storeShifts && storeShifts.length > 0 && (
         <table border="1">
           <tbody>
             <tr>
@@ -107,7 +107,7 @@ const TimeTable: React.Element = ({ shifts = [] }) => {
                 return <th key={header.toLowerCase()}>{header}</th>;
               })}
             </tr>
-            { generateShiftRows(localShifts) }
+            { generateShiftRows(storeShifts) }
           </tbody>
         </table>
       )}

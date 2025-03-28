@@ -8,7 +8,7 @@ const reactConfig = defineConfig({
     root: 'app', // Specify the root directory as the 'src' folder
     build: {
         outDir: '../public/build', // Build output directory
-        emptyOutDir: true, // Ensures old builds are deleted
+        emptyOutDir: false, // Dont remove the build directory when building
         minify: isProduction,
         sourcemap: !isProduction, // Generates sourcemaps for development
         rollupOptions: {

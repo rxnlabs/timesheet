@@ -154,7 +154,7 @@ const ShiftContext = createContext<ShiftContextType |  undefined>(undefined);
  * @param {ReactNode} props.children - The child components that require access to the shift context.
  * @returns {React.Element} A ShiftContext provider that wraps the children components.
  */
-export const ShiftProvider = ({ children }: {children: ReactNode}): React.Element => {
+export const ShiftProvider = ({ children }: {children: ReactNode}): React.JSX.Element => {
   const [state, dispatch] = useReducer(shiftReducer, shiftInitialState);
 
   const fetchShifts: Promise<void> = async () => {

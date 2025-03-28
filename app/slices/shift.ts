@@ -75,6 +75,9 @@ export const shiftSlice = createSlice({
   name: 'shift',
   initialState,
   reducers: {
+    setShifts: (state, action: PayloadAction<Array<Shift>>) => {
+      state.shifts = action.payload;
+    },
     editShift: (state, action: PayloadAction<string|null>) => {
       state.editShiftId = action.payload;
     },
@@ -86,6 +89,9 @@ export const shiftSlice = createSlice({
     },
     setHistoricalLogWeek: (state, action: PayloadAction<number|null>) => {
       state.historicalLogWeek = action.payload;
+    },
+    setLogHistory: (state, action: PayloadAction<Array<object>>) => {
+      state.logHistory = action.payload;
     }
   },
   extraReducers: builder => {
@@ -138,7 +144,7 @@ export const shiftSlice = createSlice({
  */
 export const getShifts = createAsyncThunk(
   'shift/getShiftsFetch',
-  async (args: { year: number; week: number } | null) => {
+  async (args: { year: number; week: number } | null, thunkAPI) => {
     try {
       let endpoint:string = '/api.php?endpoint=gettimesheet';
 
@@ -149,6 +155,11 @@ export const getShifts = createAsyncThunk(
       const response = await fetch(endpoint, {
         method: 'GET',
       });
+
+      if (thunkAPI.signal.aborted) {
+        thunkAPI.dispatch(shiftSlice.actions.setShifts([]));
+      }
+
       return await response.json();
     } catch (error) {
       throw error;
@@ -198,9 +209,15 @@ export const addShift = createAsyncThunk(
  */
 export const getLogWeeks = createAsyncThunk(
   'shift/getLogWeeksFetch',
-  async () => {
+  async (arg, thunkAPI) => {
     try {
+      //console.log(thunkAPI.signal);
       const response = await fetch('/api.php?endpoint=getlogweeks');
+
+      if (thunkAPI.signal.aborted) {
+        thunkAPI.dispatch(shiftSlice.actions.setLogHistory([]));
+      }
+
       return await response.json();
     } catch (error) {
       console.log(error);

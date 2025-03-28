@@ -1,3 +1,13 @@
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.pdf filter=lfs diff=lfs merge=lfs -text
+*.map -diff
+*.map binary
+*.min.* -diff
+*.min.* binary
+*.sql -diff
+*.sql binary
+public/build/css/** -diff
+public/build/css/** binary
+public/build/js/** -diff
+public/build/js/** binary
